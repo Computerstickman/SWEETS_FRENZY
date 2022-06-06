@@ -12,6 +12,7 @@ class Play extends Phaser.Scene {
         this.load.image('muffin', './assets/muffin.png');
         this.load.image('cupcake', './assets/cupcake.png');
         this.load.image('special', './assets/specialcake.png');
+        this.load.image('counter', './assets/counter.png');
         this.load.audio('sfx_select', './assets/blip_select12.wav');
     }
 
@@ -34,7 +35,7 @@ class Play extends Phaser.Scene {
         this.overlay = this.add.image(game.config.width/2, game.config.height - borderUISize, 'overlay').setOrigin(0.5, 1).setDisplaySize(350, 120).setAlpha(0);
         this.hooves = new Rocket(this, game.config.width/2, game.config.height - borderUISize, 'hooves').setOrigin(0.5, 0.6).setDisplaySize(350, 120);
 
-
+        this.counter = this.add.image(0, game.config.height, 'counter').setOrigin(0, 1).setDisplaySize(160, 100);
         // define keys
         keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
         keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
@@ -51,16 +52,16 @@ class Play extends Phaser.Scene {
         let scoreConfig = {
             fontFamily: 'Courier',
             fontSize: '28px',
-            backgroundColor: '#F3B141',
-            color: '#843605',
-            align: 'right',
+            backgroundColor: '#FEE5B4',
+            color: '#E44898',
+            align: 'left',
             padding: {
                 top: 5,
                 bottom: 5,
             },
-            fixedWidth: 100
+            fixedWidth: 90
         }
-        this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, scoreConfig);
+        this.scoreLeft = this.add.text(20, game.config.height - borderUISize, this.p1Score, scoreConfig);
 
         // GAME OVER flag
         this.gameOver = false;
@@ -92,6 +93,7 @@ class Play extends Phaser.Scene {
             this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5);
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← to Menu', scoreConfig).setOrigin(0.5);
             this.gameOver = true;
+            this.isAnimating = true;
         }, null, this);
     }
 
@@ -154,14 +156,17 @@ class Play extends Phaser.Scene {
 
         
         if(this.checkCollision(this.tounge, this.muffin)) {
+            this.p1Score += 5;
             this.reset();
             //this.shipExplode(this.ship03);
         }
         if (this.checkCollision(this.tounge, this.cupcake)) {
+            this.p1Score += 10;
             this.reset();
            // this.shipExplode(this.ship02);
         }
         if (this.checkCollision(this.tounge, this.specialcake)) {
+            this.p1Score += 20;
             this.reset();
             //this.shipExplode(this.ship01);
         }
@@ -188,6 +193,7 @@ class Play extends Phaser.Scene {
         this.clock = this.time.delayedCall(500, () => {
             this.pinkie.anims.play('idle'); 
             this.isAnimating = false;
+            this.scoreLeft.text = this.p1Score; 
         }, null, this);
         this.isFiring = false;
         this.overlay.setAlpha(0);
