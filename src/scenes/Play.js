@@ -22,9 +22,9 @@ class Play extends Phaser.Scene {
         this.pinkie = new Rocket(this, game.config.width/2, game.config.height - borderUISize, 'pinkie').setOrigin(0.5, 1).setDisplaySize(350, 120);
         this.tounge = new Tounge(this, game.config.width/2, game.config.height - borderUISize, 'tounge').setOrigin(0.5, 0);
 
-        this.muffin = new Spaceship(this, game.config.width + borderUISize*6, borderUISize*4, 'muffin', 0, 30).setOrigin(0, 0);
+        this.specialcake = new Special(this, game.config.width + borderUISize*6, borderUISize*4, 'special', 0, 30).setOrigin(0, 0);
         this.cupcake = new Spaceship(this, game.config.width + borderUISize*3, borderUISize*5 + borderPadding*2, 'cupcake', 0, 20).setOrigin(0,0);
-        this.specialcake = new Spaceship(this, game.config.width, borderUISize*6 + borderPadding*4, 'special', 0, 10).setOrigin(0,0);
+        this.muffin = new Spaceship(this, game.config.width, borderUISize*6 + borderPadding*4, 'muffin', 0, 10).setOrigin(0,0);
 
         // white borders
         this.add.rectangle(0, 0, game.config.width, borderUISize, 0xFFFFFF).setOrigin(0 ,0);
@@ -37,7 +37,7 @@ class Play extends Phaser.Scene {
 
         this.counter = this.add.image(0, game.config.height, 'counter').setOrigin(0, 1).setDisplaySize(160, 100);
         // define keys
-        keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+        keyUP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
         keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
         keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
@@ -108,7 +108,7 @@ class Play extends Phaser.Scene {
         }
             
 
-            if(keyLEFT.isDown && this.pinkie.x >= 0 + 150 && !this.isFiring && !this.isAnimating) {
+            if(keyLEFT.isDown && this.pinkie.x >= 0 + 150 && !this.isFiring && !this.isAnimating && !this.gameOver) {
                 this.pinkie.x -= 2;
                 this.hooves.x -= 2;
                 this.tounge.x -= 2;
@@ -118,7 +118,7 @@ class Play extends Phaser.Scene {
                 this.tounge.x += 2;
             }
 
-            if(Phaser.Input.Keyboard.JustDown(keyF) && !this.isFiring && !this.isAnimating)
+            if(Phaser.Input.Keyboard.JustDown(keyUP) && !this.isFiring && !this.isAnimating)
             {
                 this.isFiring = true;
                 this.sound.play('sfx_select'); 
@@ -147,7 +147,7 @@ class Play extends Phaser.Scene {
         if(!this.gameOver) {
             this.pinkie.update(); 
             this.hooves.update();
-            //this.tounge.update();                           
+            this.tounge.update();                           
             this.muffin.update();
             this.cupcake.update();
             this.specialcake.update();
@@ -157,17 +157,17 @@ class Play extends Phaser.Scene {
         
         if(this.checkCollision(this.tounge, this.muffin)) {
             this.p1Score += 5;
-            this.reset();
+            this.reset(this.muffin);
             //this.shipExplode(this.ship03);
         }
         if (this.checkCollision(this.tounge, this.cupcake)) {
             this.p1Score += 10;
-            this.reset();
+            this.reset(this.cupcake);
            // this.shipExplode(this.ship02);
         }
         if (this.checkCollision(this.tounge, this.specialcake)) {
             this.p1Score += 20;
-            this.reset();
+            this.reset(this.specialcake);
             //this.shipExplode(this.ship01);
         }
         
@@ -185,9 +185,10 @@ class Play extends Phaser.Scene {
         }
     }
 
-    reset()
+    reset(cake)
     {
         this.tounge.y = game.config.width/2, game.config.height - borderUISize;
+        cake.reset();
         this.pinkie.anims.play('good'); 
         this.isAnimating = true;
         this.clock = this.time.delayedCall(500, () => {
