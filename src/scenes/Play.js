@@ -13,6 +13,7 @@ class Play extends Phaser.Scene {
         this.load.image('cupcake', './assets/cupcake.png');
         this.load.image('special', './assets/specialcake.png');
         this.load.image('counter', './assets/counter.png');
+        this.load.image('gameover', './assets/gameover.png');
         this.load.audio('sfx_select', './assets/blip_select12.wav');
     }
 
@@ -89,9 +90,8 @@ class Play extends Phaser.Scene {
 
         // 60-second play clock
         scoreConfig.fixedWidth = 0;
-        this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
-            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5);
-            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← to Menu', scoreConfig).setOrigin(0.5);
+        this.clock = this.time.delayedCall(500, () => {
+            this.gameOver = this.add.image(0, game.config.height, 'gameover').setOrigin(0, 1).setDisplaySize(160, 100);
             this.gameOver = true;
             this.isAnimating = true;
         }, null, this);
