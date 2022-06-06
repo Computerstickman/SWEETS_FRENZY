@@ -14,12 +14,14 @@ class Play extends Phaser.Scene {
         this.load.image('special', './assets/specialcake.png');
         this.load.image('counter', './assets/counter.png');
         this.load.image('gameover', './assets/gameover.png');
-        this.load.audio('sfx_select', './assets/blip_select12.wav');
+        this.load.audio('sfx_happy', './assets/happy.wav');
+        this.load.audio('sfx_sad', './assets/sad.wav');
+        this.load.audio('sfx_shot', './assets/shot.wav');
     }
 
     create() {
 
-
+        this.add.rectangle(0, 0, game.config.width, game.config.height, 0xFFF9CF).setOrigin(0 ,0);
         this.pinkie = new Rocket(this, game.config.width/2, game.config.height - borderUISize, 'pinkie').setOrigin(0.5, 1).setDisplaySize(350, 120);
         this.tounge = new Tounge(this, game.config.width/2, game.config.height - borderUISize, 'tounge').setOrigin(0.5, 0);
 
@@ -28,10 +30,10 @@ class Play extends Phaser.Scene {
         this.muffin = new Spaceship(this, game.config.width, borderUISize*6 + borderPadding*4, 'muffin', 0, 10).setOrigin(0,0);
 
         // white borders
-        this.add.rectangle(0, 0, game.config.width, borderUISize, 0xFFFFFF).setOrigin(0 ,0);
-        this.add.rectangle(0, game.config.height - borderUISize, game.config.width, borderUISize, 0xFFFFFF).setOrigin(0 ,0);
-        this.add.rectangle(0, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0 ,0);
-        this.add.rectangle(game.config.width - borderUISize, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0 ,0);
+        this.add.rectangle(0, 0, game.config.width, borderUISize, 0xC93682).setOrigin(0 ,0);
+        this.add.rectangle(0, game.config.height - borderUISize, game.config.width, borderUISize, 0xC93682).setOrigin(0 ,0);
+        this.add.rectangle(0, 0, borderUISize, game.config.height, 0xC93682).setOrigin(0 ,0);
+        this.add.rectangle(game.config.width - borderUISize, 0, borderUISize, game.config.height, 0xC93682).setOrigin(0 ,0);
 
         this.overlay = this.add.image(game.config.width/2, game.config.height - borderUISize, 'overlay').setOrigin(0.5, 1).setDisplaySize(350, 120).setAlpha(0);
         this.hooves = new Rocket(this, game.config.width/2, game.config.height - borderUISize, 'hooves').setOrigin(0.5, 0.6).setDisplaySize(350, 120);
@@ -90,8 +92,9 @@ class Play extends Phaser.Scene {
 
         // 60-second play clock
         scoreConfig.fixedWidth = 0;
-        this.clock = this.time.delayedCall(500, () => {
-            this.gameOver = this.add.image(0, game.config.height, 'gameover').setOrigin(0, 1).setDisplaySize(160, 100);
+        this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
+            this.sound.play('sfx_sad'); 
+            this.gameOver = this.add.image(0, game.config.height, 'gameover').setOrigin(0, 1);
             this.gameOver = true;
             this.isAnimating = true;
         }, null, this);
@@ -99,7 +102,7 @@ class Play extends Phaser.Scene {
 
     update() {
         // check key input for restart / menu
-        if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyR)) {
+        if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyRIGHT)) {
             this.scene.restart();
         }
 
@@ -121,7 +124,7 @@ class Play extends Phaser.Scene {
             if(Phaser.Input.Keyboard.JustDown(keyUP) && !this.isFiring && !this.isAnimating)
             {
                 this.isFiring = true;
-                this.sound.play('sfx_select'); 
+                this.sound.play('sfx_shot'); 
                 this.overlay.setX (this.pinkie.x);
                 this.overlay.setAlpha(1);
                 this.pinkie.anims.play('tounge'); 
@@ -131,6 +134,7 @@ class Play extends Phaser.Scene {
                 this.tounge.y = game.config.width/2, game.config.height - borderUISize;
                 this.pinkie.anims.play('bad'); 
                 this.isAnimating = true;
+                this.sound.play('sfx_sad'); 
                 this.clock = this.time.delayedCall(800, () => {
                     this.pinkie.anims.play('idle'); 
                     this.isAnimating = false;
@@ -191,6 +195,7 @@ class Play extends Phaser.Scene {
         cake.reset();
         this.pinkie.anims.play('good'); 
         this.isAnimating = true;
+        this.sound.play('sfx_happy'); 
         this.clock = this.time.delayedCall(500, () => {
             this.pinkie.anims.play('idle'); 
             this.isAnimating = false;
