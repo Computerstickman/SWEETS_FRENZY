@@ -45,6 +45,7 @@ class Play extends Phaser.Scene {
         // initialize score
         this.p1Score = 0;
         this.isFiring = false;
+        this.isAnimating = false;
 
         // display score
         let scoreConfig = {
@@ -105,17 +106,17 @@ class Play extends Phaser.Scene {
         }
             
 
-            if(keyLEFT.isDown && this.pinkie.x >= 0 + 150 && !this.isFiring) {
+            if(keyLEFT.isDown && this.pinkie.x >= 0 + 150 && !this.isFiring && !this.isAnimating) {
                 this.pinkie.x -= 2;
                 this.hooves.x -= 2;
                 this.tounge.x -= 2;
-            } else if (keyRIGHT.isDown && this.pinkie.x <= game.config.width - 150 && !this.isFiring) {
+            } else if (keyRIGHT.isDown && this.pinkie.x <= game.config.width - 150 && !this.isFiring && !this.isAnimating) {
                 this.pinkie.x += 2;
                 this.hooves.x += 2;
                 this.tounge.x += 2;
             }
 
-            if(Phaser.Input.Keyboard.JustDown(keyF) && !this.isFiring)
+            if(Phaser.Input.Keyboard.JustDown(keyF) && !this.isFiring && !this.isAnimating)
             {
                 this.isFiring = true;
                 this.sound.play('sfx_select'); 
@@ -127,13 +128,17 @@ class Play extends Phaser.Scene {
             if(this.tounge.y <= 0) {
                 this.tounge.y = game.config.width/2, game.config.height - borderUISize;
                 this.pinkie.anims.play('bad'); 
-                this.pinkie.anims.play('idle'); 
+                this.isAnimating = true;
+                this.clock = this.time.delayedCall(800, () => {
+                    this.pinkie.anims.play('idle'); 
+                    this.isAnimating = false;
+                }, null, this);
                 this.isFiring = false;
                 this.overlay.setAlpha(0);
             }
 
             if(this.isFiring) {
-                this.tounge.y -= 2;
+                this.tounge.y -= 4;
             }
 
         
@@ -149,15 +154,15 @@ class Play extends Phaser.Scene {
 
         
         if(this.checkCollision(this.tounge, this.muffin)) {
-            this.reset(this.pinkie);
+            this.reset();
             //this.shipExplode(this.ship03);
         }
         if (this.checkCollision(this.tounge, this.cupcake)) {
-            this.reset(this.pinkie);
+            this.reset();
            // this.shipExplode(this.ship02);
         }
         if (this.checkCollision(this.tounge, this.specialcake)) {
-            this.reset(this.pinkie);
+            this.reset();
             //this.shipExplode(this.ship01);
         }
         
@@ -175,14 +180,16 @@ class Play extends Phaser.Scene {
         }
     }
 
-    reset(tounge)
+    reset()
     {
         this.tounge.y = game.config.width/2, game.config.height - borderUISize;
         this.pinkie.anims.play('good'); 
+        this.isAnimating = true;
         this.clock = this.time.delayedCall(500, () => {
             this.pinkie.anims.play('idle'); 
-            this.isFiring = false;
+            this.isAnimating = false;
         }, null, this);
+        this.isFiring = false;
         this.overlay.setAlpha(0);
     }
 }
