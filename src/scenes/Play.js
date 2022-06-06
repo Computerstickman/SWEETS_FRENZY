@@ -5,18 +5,20 @@ class Play extends Phaser.Scene {
 
     preload() {
         // load images/tile sprites
-        this.load.image('pinkidle', './assets/pink1.png');
+        this.load.spritesheet('pinkie', './assets/pinksheet.png', {frameWidth: 1306, frameHeight: 442, startFrame: 0, endFrame: 3});
         this.load.image('tounge', './assets/tounge.png');
+        this.load.image('overlay', './assets/pink0.png');
         this.load.image('hooves', './assets/hooves.png');
         this.load.image('muffin', './assets/muffin.png');
         this.load.image('cupcake', './assets/cupcake.png');
         this.load.image('special', './assets/specialcake.png');
+        this.load.audio('sfx_select', './assets/blip_select12.wav');
     }
 
     create() {
 
 
-        this.pinkie = new Rocket(this, game.config.width/2, game.config.height - borderUISize, 'pinkidle').setOrigin(0.5, 1).setDisplaySize(350, 120);
+        this.pinkie = new Rocket(this, game.config.width/2, game.config.height - borderUISize, 'pinkie').setOrigin(0.5, 1).setDisplaySize(350, 120);
         this.tounge = new Tounge(this, game.config.width/2, game.config.height - borderUISize, 'tounge').setOrigin(0.5, 0);
 
         this.muffin = new Spaceship(this, game.config.width + borderUISize*6, borderUISize*4, 'muffin', 0, 30).setOrigin(0, 0);
@@ -29,7 +31,9 @@ class Play extends Phaser.Scene {
         this.add.rectangle(0, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0 ,0);
         this.add.rectangle(game.config.width - borderUISize, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0 ,0);
 
-        this.hooves = new Rocket(this, game.config.width/2, game.config.height - borderUISize, 'hooves').setOrigin(0.5, 0.5).setDisplaySize(350, 120);
+        this.overlay = this.add.image(game.config.width/2, game.config.height - borderUISize, 'overlay').setOrigin(0.5, 1).setDisplaySize(350, 120).setAlpha(0);
+        this.hooves = new Rocket(this, game.config.width/2, game.config.height - borderUISize, 'hooves').setOrigin(0.5, 0.6).setDisplaySize(350, 120);
+
 
         // define keys
         keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
@@ -40,6 +44,7 @@ class Play extends Phaser.Scene {
 
         // initialize score
         this.p1Score = 0;
+        this.isFiring = false;
 
         // display score
         let scoreConfig = {
@@ -59,6 +64,27 @@ class Play extends Phaser.Scene {
         // GAME OVER flag
         this.gameOver = false;
 
+        this.anims.create({
+            key: 'idle',
+            frames: this.anims.generateFrameNumbers('pinkie', { start: 0, end: 0, first: 0}),
+            frameRate: 1
+        });
+        this.anims.create({
+            key: 'tounge',
+            frames: this.anims.generateFrameNumbers('pinkie', { start: 1, end: 1, first: 1}),
+            frameRate: 1
+        });
+        this.anims.create({
+            key: 'bad',
+            frames: this.anims.generateFrameNumbers('pinkie', { start: 2, end: 2, first: 2}),
+            frameRate: 1
+        });
+        this.anims.create({
+            key: 'good',
+            frames: this.anims.generateFrameNumbers('pinkie', { start: 3, end: 3, first: 3}),
+            frameRate: 1
+        });
+
         // 60-second play clock
         scoreConfig.fixedWidth = 0;
         this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
@@ -77,42 +103,64 @@ class Play extends Phaser.Scene {
         if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyLEFT)) {
             this.scene.start("menuScene");
         }
+            
 
-
-            if(keyLEFT.isDown && this.pinkie.x >= 0 + borderUISize) {
+            if(keyLEFT.isDown && this.pinkie.x >= 0 + 150 && !this.isFiring) {
                 this.pinkie.x -= 2;
                 this.hooves.x -= 2;
                 this.tounge.x -= 2;
-            } else if (keyRIGHT.isDown && this.pinkie.x <= game.config.width - borderUISize) {
+            } else if (keyRIGHT.isDown && this.pinkie.x <= game.config.width - 150 && !this.isFiring) {
                 this.pinkie.x += 2;
                 this.hooves.x += 2;
                 this.tounge.x += 2;
             }
+
+            if(Phaser.Input.Keyboard.JustDown(keyF) && !this.isFiring)
+            {
+                this.isFiring = true;
+                this.sound.play('sfx_select'); 
+                this.overlay.setX (this.pinkie.x);
+                this.overlay.setAlpha(1);
+                this.pinkie.anims.play('tounge'); 
+            }
+
+            if(this.tounge.y <= 0) {
+                this.tounge.y = game.config.width/2, game.config.height - borderUISize;
+                this.pinkie.anims.play('bad'); 
+                this.pinkie.anims.play('idle'); 
+                this.isFiring = false;
+                this.overlay.setAlpha(0);
+            }
+
+            if(this.isFiring) {
+                this.tounge.y -= 2;
+            }
+
         
         if(!this.gameOver) {
             this.pinkie.update(); 
             this.hooves.update();
-            this.tounge.update();                           
+            //this.tounge.update();                           
             this.muffin.update();
             this.cupcake.update();
             this.specialcake.update();
         }
         
 
-        /*
-        if(this.checkCollision(this.p1Rocket, this.ship03)) {
-            this.p1Rocket.reset();
-            this.shipExplode(this.ship03);
+        
+        if(this.checkCollision(this.tounge, this.muffin)) {
+            this.reset(this.pinkie);
+            //this.shipExplode(this.ship03);
         }
-        if (this.checkCollision(this.p1Rocket, this.ship02)) {
-            this.p1Rocket.reset();
-            this.shipExplode(this.ship02);
+        if (this.checkCollision(this.tounge, this.cupcake)) {
+            this.reset(this.pinkie);
+           // this.shipExplode(this.ship02);
         }
-        if (this.checkCollision(this.p1Rocket, this.ship01)) {
-            this.p1Rocket.reset();
-            this.shipExplode(this.ship01);
+        if (this.checkCollision(this.tounge, this.specialcake)) {
+            this.reset(this.pinkie);
+            //this.shipExplode(this.ship01);
         }
-        */
+        
     }
 
     checkCollision(rocket, ship) {
@@ -127,5 +175,14 @@ class Play extends Phaser.Scene {
         }
     }
 
-  
+    reset(tounge)
+    {
+        this.tounge.y = game.config.width/2, game.config.height - borderUISize;
+        this.pinkie.anims.play('good'); 
+        this.clock = this.time.delayedCall(500, () => {
+            this.pinkie.anims.play('idle'); 
+            this.isFiring = false;
+        }, null, this);
+        this.overlay.setAlpha(0);
+    }
 }
