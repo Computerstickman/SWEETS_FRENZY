@@ -115,13 +115,13 @@ class Play extends Phaser.Scene {
                 this.pinkie.x -= 2;
                 this.hooves.x -= 2;
                 this.tounge.x -= 2;
-            } else if (keyRIGHT.isDown && this.pinkie.x <= game.config.width - 150 && !this.isFiring && !this.isAnimating) {
+            } else if (keyRIGHT.isDown && this.pinkie.x <= game.config.width - 150 && !this.isFiring && !this.isAnimating && !this.gameOver) {
                 this.pinkie.x += 2;
                 this.hooves.x += 2;
                 this.tounge.x += 2;
             }
 
-            if(Phaser.Input.Keyboard.JustDown(keyUP) && !this.isFiring && !this.isAnimating)
+            if(Phaser.Input.Keyboard.JustDown(keyUP) && !this.isFiring && !this.isAnimating && !this.gameOver)
             {
                 this.isFiring = true;
                 this.sound.play('sfx_shot'); 
